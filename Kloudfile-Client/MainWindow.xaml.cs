@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,6 +17,9 @@ using System.Windows.Shapes;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using System.Windows.Forms;
+using Image = System.Drawing.Image;
+using MessageBox = System.Windows.MessageBox;
+using Rectangle = System.Drawing.Rectangle;
 
 namespace Kloudfile_Client
 {
@@ -27,24 +32,32 @@ namespace Kloudfile_Client
         {
             InitializeComponent();
 
-            var iconStream = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/Images/Launch.ico"))?.Stream;
-            var ni = new System.Windows.Forms.NotifyIcon { Icon = new System.Drawing.Icon(iconStream), Visible = true };
+            var iconStream = System.Windows.Application
+                .GetResourceStream(new Uri("pack://application:,,,/Images/Launch.ico"))?.Stream;
+            var ni = new System.Windows.Forms.NotifyIcon {Icon = new System.Drawing.Icon(iconStream), Visible = true};
             ni.Visible = true;
             ni.DoubleClick +=
-                delegate (object sender, EventArgs args)
+                delegate(object sender, EventArgs args)
                 {
                     this.Show();
                     this.WindowState = WindowState.Normal;
                 };
         }
 
+        private static Rectangle? bounds = null;
+
+
+        public static void setBounds(System.Drawing.Rectangle bounds)
+        {
+            MainWindow.bounds = bounds;
+        }
 
         [DllImport("User32.dll")]
         private static extern bool RegisterHotKey(
-    [In] IntPtr hWnd,
-    [In] int id,
-    [In] uint fsModifiers,
-    [In] uint vk);
+            [In] IntPtr hWnd,
+            [In] int id,
+            [In] uint fsModifiers,
+            [In] uint vk);
 
         [DllImport("User32.dll")]
         private static extern bool UnregisterHotKey(
@@ -101,12 +114,14 @@ namespace Kloudfile_Client
                             handled = true;
                             break;
                     }
+
                     break;
             }
+
             return IntPtr.Zero;
         }
 
-        private void OnHotKeyPressed()
+        private static void OnHotKeyPressed()
         {
             Form f = new ScreenShotForm();
             f.BackColor = System.Drawing.Color.WhiteSmoke;
@@ -115,8 +130,32 @@ namespace Kloudfile_Client
             f.TopMost = true;
             f.Opacity = 0.05;
 
+
             System.Windows.Forms.Application.EnableVisualStyles();
             System.Windows.Forms.Application.Run(f);
+
+            processScreenShot(MainWindow.bounds, f.Bounds);
+        }
+
+        private static void processScreenShot(Rectangle? rectangle, Rectangle? screenBounds)
+        {
+            Bitmap bmpScreenCapture = new Bitmap((int) screenBounds?.Width, screenBounds.Value.Height);
+
+            Graphics g = Graphics.FromImage(bmpScreenCapture);
+
+            g.CopyFromScreen((int) screenBounds?.X,
+                screenBounds.Value.Y,
+                0, 0,
+                bmpScreenCapture.Size,
+                CopyPixelOperation.SourceCopy);
+
+            cropImage(bmpScreenCapture, rectangle.Value).Save(System.IO.Path.GetTempPath() + "test.png");
+        }
+
+        private static Image cropImage(Image img, Rectangle cropArea)
+        {
+            Bitmap bmpImage = new Bitmap(img);
+            return bmpImage.Clone(cropArea, bmpImage.PixelFormat);
         }
 
 

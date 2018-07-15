@@ -24,26 +24,34 @@ namespace Kloudfile_Client
             e.Graphics.FillRectangle(Brushes.Black, rec);
         }
 
-        Tuple<int, int> startPos = null;
+        Tuple<int, int> _startPos = null;
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left)
-            {
-                startPos = new Tuple<int, int>(e.X, e.X);
-                rec = new Rectangle(e.X, e.Y, 0, 0);
-                Invalidate();
-
-            }
+            if (e.Button != MouseButtons.Left) return;
+            _startPos = new Tuple<int, int>(e.X, e.X);
+            rec = new Rectangle(e.X, e.Y, 0, 0);
+            Invalidate();
         }
+
         protected override void OnMouseMove(MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left)
+            if (e.Button != MouseButtons.Left) return;
+            rec.Width = e.X - rec.X;
+            rec.Height = e.Y - rec.Y;
+            this.Invalidate();
+        }
+
+        protected override void OnMouseUp(MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left)
             {
-                rec.Width = e.X + rec.X;
-                rec.Height = e.Y + rec.Y;
-                this.Invalidate();
+                this.Close();
             }
+
+            MainWindow.setBounds(rec);
+
+            this.Close();
         }
 
         protected override void OnKeyPress(KeyPressEventArgs e)

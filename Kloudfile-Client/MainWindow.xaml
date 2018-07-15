@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:Kloudfile_Client"
         mc:Ignorable="d"
         Title="MainWindow" Height="529.339" Width="819.835">
-    <Grid>
+    <Grid IsEnabled="False">
 
+        <TextBox></TextBox>
     </Grid>
 </Window>
